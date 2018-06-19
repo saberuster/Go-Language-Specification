@@ -1,4 +1,8 @@
-## 介绍
+# Go 语言 Spec
+
+版本：May 9, 2018
+
+##介绍
 
 这是一个 Go 语言的参考手册，你也可以访问[golang.org](https://golang.org/)获取更多信息和其他文档。
 
