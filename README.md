@@ -1,4 +1,6 @@
-# Go 语言 Spec
+# Go 语言参考手册
+
+官网 [Spec](https://golang.org/ref/spec) 译文
 
 版本：May 9, 2018
 
