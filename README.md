@@ -31,10 +31,10 @@ Repetition  = "{" Expression "}" .
 产生式是由词法单元和以下操作符构成的表达式（优先级依次递增）：
 
 ```
-|   alternation
-()  grouping
-[]  option (0 or 1 times)
-{}  repetition (0 to n times)
+|   或
+()  分组
+[]  可选 (出现 0 或 1 次)
+{}  可重复 (出现 0 到 n 次)
 ```
 
 小写的产生式名称用来与词法单元区分。非终结符采用驼峰式。词法单元由双引号或反引号组成。
@@ -56,10 +56,10 @@ Go 的源代码使用 UTF-8 编码的 Unicode 文本。不过它并不是完全�
 这些单词表示 Unicode 字符的类别：
 
 ```
-newline        = /* the Unicode code point U+000A */ .
-unicode_char   = /* an arbitrary Unicode code point except newline */ .
-unicode_letter = /* a Unicode code point classified as "Letter" */ .
-unicode_digit  = /* a Unicode code point classified as "Number, decimal digit" */ .
+newline        = /* Unicode 代码点 U+000A */ .
+unicode_char   = /* 排除换行以外的任意 Unicode 代码点 */ .
+unicode_letter = /* 一个字母（"Letter"）类型的 Unicode 代码点  */ .
+unicode_digit  = /* 一个数字（"Number, decimal digit"）类型的 Unicode 代码点  */ .
 ```
 
 在 Unicode8.0 标准中，第 4.5 章节 “一般类别” 中定义了字符的类别。Go 能够处理任何字符集，包括 Lu，Li，Lt，Lm 或 Lo 作为 Unicode 字母，还可以把数字字符集 Nd 当作 Unicode 数字处理。
@@ -221,15 +221,15 @@ rune 类型字面值相当于一个 rune 常量。它是一个表示 Unicode 代
 
 ```
 \a   U+0007 alert or bell
-\b   U+0008 backspace
+\b   U+0008 退格符
 \f   U+000C form feed
 \n   U+000A line feed or newline
 \r   U+000D carriage return
-\t   U+0009 horizontal tab
-\v   U+000b vertical tab
-\\   U+005c backslash
-\'   U+0027 single quote  (valid escape only within rune literals)
-\"   U+0022 double quote  (valid escape only within string literals)
+\t   U+0009 水平制表符
+\v   U+000b 垂直制表符
+\\   U+005c 反斜线
+\'   U+0027 单引号  (只在 rune 字面值中有效)
+\"   U+0022 双引号  (只在字符串字面值中有效)
 ```
 
 其他所有以反斜线开头的序列在 rune 的规则中都是非法的。
@@ -258,12 +258,12 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 '\xff'
 '\u12e4'
 '\U00101234'
-'\''         // rune literal containing single quote character
-'aa'         // illegal: too many characters
-'\xa'        // illegal: too few hexadecimal digits
-'\0'         // illegal: too few octal digits
-'\uDFFF'     // illegal: surrogate half
-'\U00110000' // illegal: invalid Unicode code point
+'\''         // 包含单引号的 rune 字面值
+'aa'         // 无效: 太多字符
+'\xa'        // 无效: 缺少十六进制数
+'\0'         // 无效: 缺少八进制数
+'\uDFFF'     // 无效: surrogate half
+'\U00110000' // 无效: 非法的 Unicode 代码点
 ```
 
 #### 字符串字面量
@@ -281,27 +281,27 @@ interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
 ```
 
 ```
-`abc`                // same as "abc"
+`abc`                // 等价于 "abc"
 `\n
-\n`                  // same as "\\n\n\\n"
+\n`                  // 等价于 "\\n\n\\n"
 "\n"
-"\""                 // same as `"`
+"\""                 // 等价于 `"`
 "Hello, world!\n"
 "日本語"
 "\u65e5本\U00008a9e"
 "\xff\u00FF"
-"\uD800"             // illegal: surrogate half
-"\U00110000"         // illegal: invalid Unicode code point
+"\uD800"             // 无效: surrogate half
+"\U00110000"         // 无效: 无效的 Unicode 代码点
 ```
 
 这些例子都表示相同的字符串：
 
 ```
-"日本語"                                 // UTF-8 input text
-`日本語`                                 // UTF-8 input text as a raw literal
-"\u65e5\u672c\u8a9e"                    // the explicit Unicode code points
-"\U000065e5\U0000672c\U00008a9e"        // the explicit Unicode code points
-"\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // the explicit UTF-8 bytes
+"日本語"                                 // UTF-8 文本
+`日本語`                                 // UTF-8 文本作为原生字面值
+"\u65e5\u672c\u8a9e"                    // 确定的 Unicode 代码点 
+"\U000065e5\U0000672c\U00008a9e"        // 确定的 Unicode 代码点
+"\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // 确定的 UTF-8 字节
 ```
 
 如果源代码中使用两个代码点表示一个字符，例如带音标的字母，把它放在 rune 中会报错（它不是单代码点）。并且在字符串中会显示两个代码点。
@@ -343,10 +343,10 @@ interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
 变量的静态类型可以通过变量声明、提供给 `new` 的类型、复合字面值、结构体变量声明的元素类型以上几种方式确定。通过new或者类型初始化。接口类型的变量也有一个明确的动态类型，这个动态类型是在运行时赋值给变量的具体值类型（特例：预声明的 nil 是无类型的）。动态类型在程序的执行过程中可能并不相同，但是接口变量的值是可以分配给相同静态类型的变量。
 
 ```
-var x interface{}  // x is nil and has static type interface{}
-var v *T           // v has value nil, static type *T
-x = 42             // x has value 42 and dynamic type int
-x = v              // x has value (*T)(nil) and dynamic type *T
+var x interface{}  // x 的静态类型为 interface{} 值为 nil
+var v *T           // v 的静态类型为 *T 值为 nil
+x = 42             // x 的动态类型为 int 值为 42
+x = v              // x 动态类型为 *T 值为 (*T)(nil)
 ```
 
 在表达式中使用变量可以取出变量的值；这个值就是变量最近一次被赋予的值。如果没有对变量赋过值，那么他的值是该类型的零值。
@@ -398,24 +398,24 @@ type (
 
 一个数字类型相当于整型和浮点型的所有值的集合。预定义的数字类型包括：
 ```
-uint8       the set of all unsigned  8-bit integers (0 to 255)
-uint16      the set of all unsigned 16-bit integers (0 to 65535)
-uint32      the set of all unsigned 32-bit integers (0 to 4294967295)
-uint64      the set of all unsigned 64-bit integers (0 to 18446744073709551615)
+uint8       8 位无符号整数集合 (0 to 255)
+uint16      16 位无符号整数集合 (0 to 65535)
+uint32      32 位无符号整数集合 (0 to 4294967295)
+uint64      64 位无符号整数集合 (0 to 18446744073709551615)
 
-int8        the set of all signed  8-bit integers (-128 to 127)
-int16       the set of all signed 16-bit integers (-32768 to 32767)
-int32       the set of all signed 32-bit integers (-2147483648 to 2147483647)
-int64       the set of all signed 64-bit integers (-9223372036854775808 to 9223372036854775807)
+int8        8 位有符号整数集合 (-128 to 127)
+int16       16 位有符号整数集合 (-32768 to 32767)
+int32       32 位有符号整数集合 (-2147483648 to 2147483647)
+int64       64 位有符号整数集合 (-9223372036854775808 to 9223372036854775807)
 
-float32     the set of all IEEE-754 32-bit floating-point numbers
-float64     the set of all IEEE-754 64-bit floating-point numbers
+float32     IEEE-754 32 位浮点数集合
+float64     IEEE-754 64 位浮点数集合
 
-complex64   the set of all complex numbers with float32 real and imaginary parts
-complex128  the set of all complex numbers with float64 real and imaginary parts
+complex64   实部虚部都为 float32 的复数集合
+complex128  实部虚部都为 float64 的复数集合
 
-byte        alias for uint8
-rune        alias for int32
+byte        uint8 的别名
+rune        int32 的别名
 ```
 
 n 位整数的值具有 n 比特的宽度并用补码表示。
@@ -423,9 +423,9 @@ n 位整数的值具有 n 比特的宽度并用补码表示。
 以下几种预定义类型由具体平台实现指定长度：
 
 ```
-uint     either 32 or 64 bits
-int      same size as uint
-uintptr  an unsigned integer large enough to store the uninterpreted bits of a pointer value
+uint     32 或 64 位
+int      和 uint 位数相同
+uintptr  能够容纳指针值的无符号整数
 ```
 为了避免移植性问题，除了被 uint8 的别名 byte 和 int32 的别名 rune，其他所有的数字类型都是通过类型声明定义。当在表达式中使用不同的数字类型需要进行类型转换。例如：int32 和 int 不是相同的类型，即使他们在指定的平台上是相等的。
 
@@ -496,10 +496,10 @@ Tag           = string_lit .
 ```
 
 ```go
-// An empty struct.
+// 空结构体.
 struct {}
 
-// A struct with 6 fields.
+// 6个字段的结构体.
 struct {
 	x, y int
 	u float32
@@ -513,22 +513,22 @@ struct {
 一个指定了类型而没有指定名称的字段叫做嵌入字段，嵌入字段必须指定类型名 T 或指向非接口类型的指针类型 \*T，其中 T 不能为指针类型。或者一个非接口类型的指针。并且T本身不能为指针类型。这种情况下会把类型名作为字段的名字。
 
 ```go
-// A struct with four embedded fields of types T1, *T2, P.T3 and *P.T4
+// 一个包含 4 个嵌入字段 T1, *T2, P.T3 和 *P.T4 的结构体
 struct {
-	T1        // field name is T1
-	*T2       // field name is T2
-	P.T3      // field name is T3
-	*P.T4     // field name is T4
-	x, y int  // field names are x and y
+	T1        // 字段名为 T1
+	*T2       // 字段名为 T2
+	P.T3      // 字段名为 T3
+	*P.T4     // 字段名为 T4
+	x, y int  // 字段名为 x 和 y
 }
 ```
 
 以下声明是错误的因为字段名称必须唯一。
 ```go
 struct {
-	T     // conflicts with embedded field *T and *P.T
-	*T    // conflicts with embedded field T and *P.T
-	*P.T  // conflicts with embedded field T and *T
+	T     // 嵌入字段 *T 与 *P.T 冲突
+	*T    // 嵌入字段 T 与 *P.T 冲突
+	*P.T  // 嵌入字段 T 与 *T 冲突
 }
 ```
 
@@ -547,14 +547,14 @@ struct {
 
 ```
 struct {
-	x, y float64 ""  // an empty tag string is like an absent tag
+	x, y float64 ""  // 空 tag 和缺省 tag 相同
 	name string  "any string is permitted as a tag"
 	_    [4]byte "ceci n'est pas un champ de structure"
 }
 
-// A struct corresponding to a TimeStamp protocol buffer.
-// The tag strings define the protocol buffer field numbers;
-// they follow the convention outlined by the reflect package.
+// 结构体对应一个 TimeStamp 的 protocol buffer.
+// tag 字符串中定义了 protocol buffer 字段对应的数字;
+// 一般使用 reflect 包读取他们.
 struct {
 	microsec  uint64 `protobuf:"1"`
 	serverIP6 uint64 `protobuf:"2"`
@@ -666,27 +666,27 @@ type ReadWriter interface {
 }
 
 type File interface {
-	ReadWriter  // same as adding the methods of ReadWriter
-	Locker      // same as adding the methods of Locker
+	ReadWriter  // 与添加 ReadWriter 接口中的方法是等价的
+	Locker      // 与添加 Locker 接口中的方法是等价的 
 	Close()
 }
 
 type LockedFile interface {
 	Locker
-	File        // illegal: Lock, Unlock not unique
-	Lock()      // illegal: Lock not unique
+	File        // 无效: Lock, Unlock 不是唯一的
+	Lock()      // 无效: Lock 不是唯一的
 }
 ```
 
 接口 T 不能递归的嵌入进自己或已经嵌入过它的接口。
 
 ```go
-// illegal: Bad cannot embed itself
+// 无效: Bad 不能嵌入它自己
 type Bad interface {
 	Bad
 }
 
-// illegal: Bad1 cannot embed itself using Bad2
+// 无效: Bad1 不能嵌入已经引用它的 Bad2
 type Bad1 interface {
 	Bad2
 }
@@ -734,17 +734,17 @@ ChannelType = ( "chan" | "chan" "<-" | "<-" "chan" ) ElementType .
 操作符 `<-` 可以指定 channel 的数据流动方向。如果没有指定方向，channel 默认是双向的。channel 可以通过转换和赋值来限制只读和只写。
 
 ```go
-chan T          // can be used to send and receive values of type T
-chan<- float64  // can only be used to send float64s
-<-chan int      // can only be used to receive ints
+chan T          // 可以接收和发送 T 类型的数据
+chan<- float64  // 只能发送 float64 类型的值
+<-chan int      // 只能接收
 ```
 
 `<-` 与最左侧的 `chan` 关联：
 
 ```go
-chan<- chan int    // same as chan<- (chan int)
-chan<- <-chan int  // same as chan<- (<-chan int)
-<-chan <-chan int  // same as <-chan (<-chan int)
+chan<- chan int    // 等价于 chan<- (chan int)
+chan<- <-chan int  // 等价于 chan<- (<-chan int)
+<-chan <-chan int  // 等价于 <-chan (<-chan int)
 chan (<-chan int)
 ```
 
