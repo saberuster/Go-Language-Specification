@@ -12,9 +12,63 @@
 
 [源码表示法](#源码表示法)
 
-&nbsp;&nbsp;&nbsp;&nbsp;[字符](#user-content- 字符)
+&nbsp;&nbsp;&nbsp;&nbsp;[字符](#user-content-字符)
 
 &nbsp;&nbsp;&nbsp;&nbsp;[字母和数字](#字母和数字)
+
+[词汇元素](#user-content-词汇元素)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[注释](#user-content-注释)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[词汇元素](#user-content-词汇元素)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[分号](#user-content-分号)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[标识符](#user-content-标识符)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[关键字](#user-content-关键字)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[操作符和标点符号](#user-content-操作符和标点符号)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[整型字面值](#user-content-整型字面值)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[浮点字面值](#user-content-浮点字面值)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[虚数字面值](#user-content-虚数字面值)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[Rune 字面值](#user-content-Rune-字面值)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[字符串字面量](#user-content-字符串字面量)
+
+[常量](#user-content-常量)
+
+[变量](#user-content-变量)
+
+[类型](#user-content-类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[方法集](#user-content-方法集)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[布尔类型](#user-content-布尔类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[数字类型](#user-content-数字类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[字符串类型](#user-content-字符串类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[数组类型](#user-content-数组类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[切片类型](#user-content-切片类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[结构体类型](#user-content-结构体类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[指针类型](#user-content-指针类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[函数类型](#user-content-函数类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[接口类型](#user-content-接口类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[Map类型](#user-content-Map类型)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[Channel类型](#user-content-Channel类型)
 
 ## 介绍
 
