@@ -912,30 +912,30 @@ B0 和 B1 不是一种类型因为它们是通过类型定义方式分别定义�
 - T 为复数类型，并且 x 的 `real(x)` 和 `imag(x)` 部分由复数类型对应的浮点类型（`float32` 或 `float64` ）组成。
 
 ```
-x                   T           x is representable by a value of T because
+x                   T           x 可以表示 T 的值，因为：
 
-'a'                 byte        97 is in the set of byte values
-97                  rune        rune is an alias for int32, and 97 is in the set of 32-bit integers
-"foo"               string      "foo" is in the set of string values
-1024                int16       1024 is in the set of 16-bit integers
-42.0                byte        42 is in the set of unsigned 8-bit integers
-1e10                uint64      10000000000 is in the set of unsigned 64-bit integers
-2.718281828459045   float32     2.718281828459045 rounds to 2.7182817 which is in the set of float32 values
--1e-1000            float64     -1e-1000 rounds to IEEE -0.0 which is further simplified to 0.0
-0i                  int         0 is an integer value
-(42 + 0i)           float32     42.0 (with zero imaginary part) is in the set of float32 values
+'a'                 byte        97 在 byte 类型值的集合中
+97                  rune        rune 是 int32 的别名，97 在 32 位整型值的集合中
+"foo"               string      "foo" 在字符串值的集合中
+1024                int16       1024 在 16 位整型值的集合中
+42.0                byte        42 在 8 位无符号整型值的集合中
+1e10                uint64      10000000000 在 64 位无符号整型值的集合中
+2.718281828459045   float32     2.718281828459045 的近似值 2.7182817 在 float32 类型值的集合中
+-1e-1000            float64     -1e-1000 的近视值 IEEE -0.0，等于 0 
+0i                  int         0 是整型值
+(42 + 0i)           float32     42.0 (0 虚部) 在 float32 类型值的集合中
 ```
 
 ```
-x                   T           x is not representable by a value of T because
+x                   T           x 不能表示 T 的值，因为：
 
-0                   bool        0 is not in the set of boolean values
-'a'                 string      'a' is a rune, it is not in the set of string values
-1024                byte        1024 is not in the set of unsigned 8-bit integers
--1                  uint16      -1 is not in the set of unsigned 16-bit integers
-1.1                 int         1.1 is not an integer value
-42i                 float32     (0 + 42i) is not in the set of float32 values
-1e1000              float64     1e1000 overflows to IEEE +Inf after rounding
+0                   bool        0 不在布尔值的集合中
+'a'                 string      'a' 是 rune 类型, 它不在字符串类型的值集合中
+1024                byte        1024 不在 8 位无符号整型值的集合中
+-1                  uint16      -1 不在 16 位无符号整型值的集合中
+1.1                 int         1.1 不是整型值
+42i                 float32     (0 + 42i) 不在 float32 类型值的集合中
+1e1000              float64     1e1000 取近似值时会溢出成 IEEE 
 ```
 
 ## 代码块
