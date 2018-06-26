@@ -72,6 +72,16 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;[Channel类型](#user-content-Channel类型)
 
+[类型的属性和值](#user-content-类型的属性和值)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[类型标识](#user-content-类型标识)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[可分配性](#user-content-可分配性)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[代表性](#user-content-代表性)
+
+[代码块](#user-content-代码块)
+
 ## 介绍
 
 这是一个 Go 语言的参考手册，你也可以访问[golang.org](https://golang.org/)获取更多信息和其他文档。
@@ -826,24 +836,23 @@ make(chan int, 100)
 
 channel 可以在发送语句，接收操作中使用。可以不考虑同步性直接在多个 goroutine 中对 channel 调用内置函数 `len` 和 `cap` 。channel 的行为和 FIFO 队列相同。举个例子，一个 goruntine 发送数据，另一个 goruntine 接收他们，接收数据的顺序和发送数据的顺序是相同的。
 
+## 类型的属性和值
 
-## 类型和值的属性
+#### 类型标识
 
-#### 类型的特点
+两个类型可能相同也可能不同。
 
-2个类型可能是相同的，也可能是不同的。
+定义的类型都是不同类型。如果两个类型的底层类型在结构上是相同的，那它们也是相等的。总的来说：
+* 2 个数组的长度和元素类型相同，那么它们就是相同类型。
+* 如果两个切片的元素类型相同那么它们就是相同类型。
+* 如果两个结构体字段顺序相同，并且字段名称、字段类型和 tag 都相同那么它们就是相等的。非导出字段的字段名在不同的包中总是不同的。
+* 如果两个指针的基础类型相同那么他们具有相同类型。
+* 如果两个函数具有相同的参数和返回值列表，并且他们的类型相同那么他们就是相同的，参数的名称不一定要相同。
+* 如果两个接口的方法集完全相同（方法的顺序）。
+* 如果两个 map 类型的键类型和值类型相同那它们就是相等的。 
+* 如果两个 channel 类型包含的对象类型和 channel 的方向都是相同的那它们就是相同的。
 
-一个类型的定义一般和其他类型是不一样的。但是如果2个类型的底层类型在结构上是相同的,那么他们就是相等的。他们有相同的结构斌：
-* 当2个数组的长度和元素类型相同，那么他们就是相等的。
-* 如果两个切片的元素类型相同那么他们就是想等的。
-* 如果2个结构体有相同的字段顺序，并且有相同的名字和类型，和相同的tag，没有导出的字段的名称在不同的包中总是不同的。
-* 如果2个指针的所指向的类型是相同的那么他们就是相等的。
-* 如果2个函数具有相同的参数和返回值列表，并且他们的类型相同那么他们就是相同的，参数的名称不一定要相同。
-* 如果两个接口的方法集完全相同，不包括方法的顺序。
-* 如果2个map类型他们的键类型和值类型相同，那么他们就是相等的。
-* 两个channel类型如果他们包含的值类型和channel的方向是相同的那么他们就是相等的。
-
-下面的定义：
+给出下列声明：
 ```go
 type (
 	A0 = []string
@@ -881,36 +890,71 @@ func(x int, y float64) *[]string, func(int, float64) (result *[]string), and A5
 ```
 
 
-B0和B1是不同的因为他们是一个他们被不同的类型定义。
+B0 和 B1 不是一种类型因为它们是通过类型定义方式分别定义的；`func(int, float64) *B0` 和 `func(x int, y float64) *[]string` 是不同的，因为 B0 和 []string 不是相同类型。
 
-#### 赋值
+#### 可分配性
 
-一个值x可以被赋给一个T类型的变量在以下的任何一种情况。
+在以下情况下，可以将 x 分配给类型为 T 的变量（把 x 分配给 T）：
 
-* x的类型等于T
-* x类型V和T有相同的底层类型并且类型T或V至少一个不是等一的类型
-* T是一个接口类型并且x实现了T
-* x是一个channel，并且T是channel类型，类型V和类型T有相同的元素类型，并且2种类型至少有一种不是定义类型
-* x等于nil并且T是一个指针，函数，切片，map，channel或接口类型。
-* x是一个五类型的常量可以代表T类型的值。
+* x 的类型为 T
+* x 的类型 V 和 T 有相同的底层类型并且类型 T 或 V 至少一个定义的类型
+* T 是一个接口类型并且 x 实现了 T
+* x 是一个 channel，并且 T 是channel类型，类型V和类型T有相同的元素类型，并且 2 种类型至少有一种不是定义的类型
+* x 等于 nil 并且 T 是一个指针，函数，切片，map，channel 或接口类型
+* x 是一个可以表示 T 类型值的无类型常量
+
+#### 代表性
+
+满足以下条件时可以用 T 类型的值表示常量 x：
+
+- T 值的集合包括 x
+- T 是浮点型，而 x 在没有溢出的情况下能够近似成 T 类型。近似规则使用 `IEEE 754 round-to-even`，负零和无符号的零相同。需要注意的是，常量的值不会为负零，NaN，或无限值。
+- T 为复数类型，并且 x 的 `real(x)` 和 `imag(x)` 部分由复数类型对应的浮点类型（`float32` 或 `float64` ）组成。
+
+```
+x                   T           x is representable by a value of T because
+
+'a'                 byte        97 is in the set of byte values
+97                  rune        rune is an alias for int32, and 97 is in the set of 32-bit integers
+"foo"               string      "foo" is in the set of string values
+1024                int16       1024 is in the set of 16-bit integers
+42.0                byte        42 is in the set of unsigned 8-bit integers
+1e10                uint64      10000000000 is in the set of unsigned 64-bit integers
+2.718281828459045   float32     2.718281828459045 rounds to 2.7182817 which is in the set of float32 values
+-1e-1000            float64     -1e-1000 rounds to IEEE -0.0 which is further simplified to 0.0
+0i                  int         0 is an integer value
+(42 + 0i)           float32     42.0 (with zero imaginary part) is in the set of float32 values
+```
+
+```
+x                   T           x is not representable by a value of T because
+
+0                   bool        0 is not in the set of boolean values
+'a'                 string      'a' is a rune, it is not in the set of string values
+1024                byte        1024 is not in the set of unsigned 8-bit integers
+-1                  uint16      -1 is not in the set of unsigned 16-bit integers
+1.1                 int         1.1 is not an integer value
+42i                 float32     (0 + 42i) is not in the set of float32 values
+1e1000              float64     1e1000 overflows to IEEE +Inf after rounding
+```
 
 ## 代码块
 
-一个代码块是用大括号括起来的声明。
+代码块是用大括号括起来的声明和语句。
 ```
 Block = "{" StatementList "}" .
 StatementList = { Statement ";" } .
 ```
 
-除了显式的代码块在源码中，也有一些隐式的代码块。
+除了源码中显式的代码块，也有一些隐式的代码块。
 
-* 全局代码块包括所有的Go代码
-* 每个包中有包的代码块。它包括所有包内的代码。
-* 每个文件代码块包括文件内的所有代码。
-* 每个if，switch和for的范围都会形成隐式的块。
-* 每个switch和select条件都有自己的代码块
+* 包含所有的Go代码的全局代码块。
+* 包含所有包的代码的包代码块。
+* 包含文件内的所有代码的文件代码块。
+* 每个 if，switch和 for 的范围都会形成隐式的块。
+* 每个 switch 和 select 条件都有自己的代码块。
 
-代码块具有作用范围。
+代码块可以嵌套并且影响作用域。
 
 ## 声明和作用域
 
