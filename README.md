@@ -84,6 +84,32 @@
 
 [代码块](#user-content-代码块)
 
+[声明和作用域](#user-content-声明和作用域)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[标签的作用域](#user-content-标签的作用域)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[空标识符](#user-content-空标识符)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[预定义的标识符](#user-content-预定义的标识符)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[导出标识符](#user-content-导出标识符)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[标识符的唯一性](#user-content-标识符的唯一性)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[常量声明](#user-content-常量声明)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[Iota](#user-content-Iota)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[类型声明](#user-content-类型声明)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[变量声明](#user-content-变量声明)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[短变量声明](#user-content-短变量声明)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[函数声明](#user-content-函数声明)
+
+&nbsp;&nbsp;&nbsp;&nbsp;[方法声明](#user-content-方法声明)
+
 ## 介绍
 
 这是一个 Go 语言的参考手册，你也可以访问[golang.org](https://golang.org/)获取更多信息和其他文档。
@@ -1024,7 +1050,7 @@ Functions:
 
 给定一个标识符集合，一个标识符与集合中的每个标识符都不相同，那就认为这个标识符是唯一的。假设有两个标识符，如果它们的拼写不同，或者它们在不同的包中并没有导出，那它们就是不同标识符。相反，其他情况下都认为标识符是相同的。
 
-#### 常量的声明
+#### 常量声明
 
 常量声明使用常量表达式绑定一系列标识符。标识符的数量必须等于表达式的数量。左侧第 n 个标识符绑定右侧第 n 个表达式的值。
 
