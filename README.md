@@ -6,6 +6,8 @@
 
 ## 译者序
 
+
+
 ## 目录
 
 [介绍](#user-content-介绍)
@@ -958,16 +960,16 @@ StatementList = { Statement ";" } .
 
 ## 声明和作用域
 
-一个声明可以给常量，类型，变量，函数，包定义标识符。程序中的每个标识符都需要被声明。没有标识符可以在同一个代码块中被声明2次。并且没有标识符能同时在文件和package代码块中被定义。
+一段声明可以给常量，类型，变量，函数，标签，和包绑定标识符。程序中每个标识符都需要声明。相同标识符不能在同一个代码块中声明2次。并且相同标识符不能同时在文件和 package 代码块中声明。
 
-空白标识符可以和其他标识符一样用来声明，不过他不绑定，所以和美声明是一样的。在package代码狂中标识符只能能够用函数声明。
+空标识符可以和其他标识符一样在声明中使用。不过它不绑定标识符，等于没有声明。在 package 代码块中 `init` 标识符只能用做 `init` 函数的标识符，就像空标识符一样，它不会引入新的绑定。
 
 ```
 Declaration   = ConstDecl | TypeDecl | VarDecl .
 TopLevelDecl  = Declaration | FunctionDecl | MethodDecl .
 ```
 
-一个声明的标识符的作用域是标识符所声明的代码段的大小。
+声明过的标识符的作用域就是声明标识符所在的作用域。
 
 go使用块来规定词汇的方位：
 * 预定义的标识符具有全局作用域。
@@ -976,20 +978,22 @@ go使用块来规定词汇的方位：
 * 方法的接收者，函数参数，返回值变量具有函数作用域。
 * 函数内定义的参量和变量标识符的作用域是标识符被声明到容纳他的块结束。
 
-一个在代码块中声明的变量可以在内部的代码块中重新声明。在内部块的作用域中标识符的有效值为内部块的定义。
+一个代码块中声明的标识符可以在它内部的代码块中重新声明。在内部代码块的作用域中标识符表示在内部代码块中声明的实体。
 
-pakcage 不是一个定义。包名不会出现在任何的作用域中。他的作用只是在import时指定默认的包名。
+pakcage 语句不属于声明。包名不会出现在任何的作用域中。它的作用只是用来标识属于相同包的多个文件并在导入时指定默认包名。
 
 #### 标签的作用域
 
 
-标签在代码中被声明斌切使用`break`,`continue`,`goto`语法。如果定义了一个标签但是没有使用是非法的。标签的作用域只有定义时的函数体，早递归函数体中没有作用。
+可以使用标签语句来声明标签，并且可以在 `break`，`continue`，`goto` 语法中使用。如果只声明但没有使用标签时非法的。标签的作用域只有定义时的函数体，早递归函数体中没有作用。
 
-#### 空白标识符
+#### 空标识符
 
-我们使用下划线`_`来代表空白标识符。他作为一个不公开名称的表示符，并且在声明，操作和赋值时。
+空标识符使用下划线 `_` 代表。与一般的非空标识符不同，它作为匿名标识符在声明，运算元和赋值语句中都有特殊含义。
 
 #### 预定义的标识符
+
+以下标识符已经在全局作用域中预先声明：
 
 ```
 Types:
@@ -1010,18 +1014,19 @@ Functions:
 
 ####  导出标识符
 
-一个标识符可以导出给其他包使用。标识符在以下两种情况同时满足下会被导出：
-* 标识符的首字母是大写
-* 标识符在包作用域并且是一个字段的名字或者方法的名字。
+标识符可以导出供其他包使用。在以下两种情况同时满足时标识符是导出的：
+* 标识符的首字母是大写（Unicode 的 `Lu` 类）
+* 标识符声明在包作用域或者它是字段名/方法名。
 
-其他的任何标识符不能被导出。
+其他任何标识符都不是导出的。
 
-#### 唯一的标识符
-给定一些标识符，如果在这个集合中他们之间都是不同的那么他们都是唯一的。如果2个标识符的拼写不一样，那么2个标识符就不一样。如果拼写相同但是在没有导出的不同包中那么他们也是不同的。
+#### 标识符的唯一性
+
+给定一个标识符集合，一个标识符与集合中的每个标识符都不相同，那就认为这个标识符是唯一的。假设有两个标识符，如果它们的拼写不同，或者它们在不同的包中并没有导出，那它们就是不同标识符。相反，其他情况下都认为标识符是相同的。
 
 #### 常量的声明
 
-1个常量声明绑定一个标识符列表使用一个常量表达式。标识符的数量必须等于表达式的数量第n个坐标的标识符绑定第n个表达式的值。
+常量声明使用常量表达式绑定一系列标识符。标识符的数量必须等于表达式的数量。左侧第 n 个标识符绑定右侧第 n 个表达式的值。
 
 ```
 ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
@@ -1032,26 +1037,38 @@ ExpressionList = Expression { "," Expression } .
 ```
 
 
-如果存在类型，所有的常量将会指定类型。并且表达式的值必须能对这个类型进行赋值。
-如果没有指定类型。常量将会各自转换成相应的表达式类型。如果表达式的值是无类型的常量，那么声明的常量一让是无类型的，并且常量的标识符代表常量的值。例如：表达式是服点字面值，那么常量标识符是一个浮点常量，即使他的小树部分是0
+如果给定类型，常量会指定类型，并且表达式的值必须能对这个类型进行赋值。
+如果没有给定类型。常量会转换成相应的表达式类型。如果表达式的值是无类型常量，那么声明的常量也是无类型的，并且常量的标识符代表常量的值。例如：即使小数部分是 0，只要表达式是浮点数字面值，常量标识符也表示为浮点数常量。
 
 ```go
 const Pi float64 = 3.14159265358979323846
-const zero = 0.0         // untyped floating-point constant
+const zero = 0.0         // 无类型浮点数常量
 const (
 	size int64 = 1024
-	eof        = -1  // untyped integer constant
+	eof        = -1  // 无类型整型常量
 )
-const a, b, c = 3, 4, "foo"  // a = 3, b = 4, c = "foo", untyped integer and string constants
+const a, b, c = 3, 4, "foo"  // a = 3, b = 4, c = "foo", 无类型整型和字符串常量
 const u, v float32 = 0, 3    // u = 0.0, v = 3.0
 ```
 
-括号内的常量声明列表的表达式列表除了第一个必须声明其他的是可以忽略的。这个空的列表会被前面的非空表达式并且可以是任意类型。没有表达式的列表就是重复之前的列表。
-标识符的数量必须等于表达式的数量。使用`iota`常量初始化语法。
+括号内的常量声明列表的表达式除了第一个必须声明其他表达式可以不写。空的表达式列表的值和类型都和前面的非空表达式相同。缺省的表达式列表等价于重复之前的表达式。标识符的数量必须等于表达式的数量。`iota`常量生成器是一个可以快速生成序列值的机制。
+
+```go
+const (
+	Sunday = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Partyday
+	numberOfDays  // 非导出常量
+)
+```
 
 #### Iota
 
-在常量声明中。预定义的标识符iota代表一个无类型的整数常量。当重新使用他时他就会变成0.并且在每次声明一个常量后递增。他能够在关联的常量中使用。
+在常量声明中，预定义的标识符 `iota` 表示连续的无类型整型常量。它的值为常量声明中每个常量定义的位置（从零开始）。它能够用来生成一个关联常量集合：
 
 ```
 const ( // iota is reset to 0
@@ -1063,64 +1080,73 @@ const ( // iota is reset to 0
 const ( // iota is reset to 0
 	a = 1 << iota  // a == 1
 	b = 1 << iota  // b == 2
-	c = 3          // c == 3  (iota is not used but still incremented)
+	c = 3          // c == 3  (没有使用 iota 不过它的值依然递增)
 	d = 1 << iota  // d == 8
 )
 
 const ( // iota is reset to 0
-	u         = iota * 42  // u == 0     (untyped integer constant)
-	v float64 = iota * 42  // v == 42.0  (float64 constant)
-	w         = iota * 42  // w == 84    (untyped integer constant)
+	u         = iota * 42  // u == 0     (无类型整型常量)
+	v float64 = iota * 42  // v == 42.0  (float64 类型常量)
+	w         = iota * 42  // w == 84    (无类型整型常量)
 )
 
-const x = iota  // x == 0  (iota has been reset)
-const y = iota  // y == 0  (iota has been reset)
+const x = iota  // x == 0  (iota 被重置)
+const y = iota  // y == 0  (iota 被重置)
 ```
 
-在一个表达式里，每个`iota`时相同的因为他们只会在每次const声明的时候递增。
+根据定义，在同一个常量定义中多次使用 `iota` 会得到相同的值：
 
 ```
 const (
-	bit0, mask0 = 1 << iota, 1<<iota - 1  // bit0 == 1, mask0 == 0
-	bit1, mask1                           // bit1 == 2, mask1 == 1
-	_, _                                  // skips iota == 2
-	bit3, mask3                           // bit3 == 8, mask3 == 7
+	bit0, mask0 = 1 << iota, 1<<iota - 1  // bit0 == 1, mask0 == 0  (iota == 0)
+	bit1, mask1                           // bit1 == 2, mask1 == 1  (iota == 1)
+	_, _                                  //                        (iota == 2, unused)
+	bit3, mask3                           // bit3 == 8, mask3 == 7  (iota == 3)
 )
 ```
 
-最后一个例子展现跳过一个iota值的表达式列表。
+最后一个例子利用了最后一个非空表达式列表的隐式重复。
 
 #### 类型声明
 
-一个类型声明为一个类型绑定一个标识符作为类型的名字。类型声明有2种方式，type声明和alias声明。
+类型声明为类型绑定一个标识符。类型声明有2种方式：类型声明和别名声明。
+
+```
+TypeDecl = "type" ( TypeSpec | "(" { TypeSpec ";" } ")" ) .
+TypeSpec = AliasDecl | TypeDef .
+```
 
 ##### Alias声明
 
-一个别名声明绑定一个标识符的名称给指定的类型。
+别名声明给指定类型绑定一个标识符名称。
 
 ```
 AliasDecl = identifier "=" Type .
 ```
 
-标识符姿势提供一个类型的别名
+在标识符作用域内，它作为类型的别名。
 
 ```go
 type (
-	nodeList = []*Node  // nodeList and []*Node are identical types
-	Polar    = polar    // Polar and polar denote identical types
+	nodeList = []*Node  // nodeList 和 []*Node 是相同类型
+	Polar    = polar    // Polar 和 polar 表示相同类型
 )
 ```
 
-##### Type定义
+##### Type 定义
 
-一个类型定义将会创建一个新的不重复的并且拥有相同底层类型和操作的类型，并为其绑定一个标识符。
+类型定义会创建一个新类型并绑定一个标识符，新类型与给定类型具有相同的底层类型和操作。
 
-一个新的类型叫做定义类型，新定义的类型和其他类型是不一样的，包括他从创建的类型。
+```
+TypeDef = identifier Type .
+```
+
+这个类型叫做定义类型，它和其他所有类型都不相同，包括创建它的类型。
 
 ```go
 type (
-	Point struct{ x, y float64 }  // Point and struct{ x, y float64 } are different types
-	polar Point                   // polar and Point denote different types
+	Point struct{ x, y float64 }  // Point 和 struct{ x, y float64 } 是不同类型
+	polar Point                   // polar 和 Point 表示不同类型
 )
 
 type TreeNode struct {
@@ -1137,32 +1163,31 @@ type Block interface {
 
 
 
-一个定义过的类型可以关联该类型的方法。他不能继承任何原来类型的方法。但是一个接口类型的方法集或复合类型的元素没有改变。
+定义类型可以关联该类型的方法。它不会继承原来类型的任何方法。但是接口类型的方法集和类型的结构没有改变。
 
 ```go
-// A Mutex is a data type with two methods, Lock and Unlock.
+// Mutex 是一个拥有 Lock 和 Unlock 两个方法的数据类型。
 type Mutex struct         { /* Mutex fields */ }
 func (m *Mutex) Lock()    { /* Lock implementation */ }
 func (m *Mutex) Unlock()  { /* Unlock implementation */ }
 
-// NewMutex has the same composition as Mutex but its method set is empty.
+// NewMutex 与 Mutex 结构相同不过方法集为空。
 type NewMutex Mutex
 
-// The method set of the base type of PtrMutex remains unchanged,
-// but the method set of PtrMutex is empty.
+// PtrMutex 的底层类型 *Mutex 的方法集没有改变，
+// 但是 PtrMutex 的方法集为空。
 type PtrMutex *Mutex
 
-// The method set of *PrintableMutex contains the methods
-// Lock and Unlock bound to its embedded field Mutex.
+// *PrintableMutex 包含嵌入字段 Mutex 的 Lock 和 Unlock 方法。
 type PrintableMutex struct {
 	Mutex
 }
 
-// MyBlock is an interface type that has the same method set as Block.
+// MyBlock 是与 Block 有相同方法集的接口类型
 type MyBlock Block
 ```
 
-类型定义可以定义方法集不同于基础类型的新类型：
+类型定义可以定义方法集不同的布尔值、数字和字符串类型：
 ```go
 type TimeZone int
 
@@ -1180,7 +1205,7 @@ func (tz TimeZone) String() string {
 
 #### 变量声明
 
-一个变量声明可以创建1个或多个变量。丙丁对应的标识符给他们。并且给他们类型和初始值。
+变量声明可以创建一个或多个变量，并绑定对应的标识符、指定类型和初始值。
 
 ```
 VarDecl     = "var" ( VarSpec | "(" { VarSpec ";" } ")" ) .
@@ -1200,9 +1225,9 @@ var re, im = complexSqrt(-1)
 var _, found = entries[name]  // map lookup; only interested in "found"
 ```
 
-如果给定一个了大事列表，那么变量的初始化将会遵循赋值的规则。然而每个变量都会初始化他的零值。
+如果给定一个表达式列表。变量会根据赋值规则使用表达式进行初始化。否则，每个变量都会初始化成变量类型的零值。
 
-如果指定了类型。每个变量都必须指定类型。如果没有指定类型，变量将会使用值的类型。如果值为无类型常量。他会转换成默认类型。如果是一个无类型布尔值，那么变量的类型就是bool。值nil不能用来给没有指定类型的变量赋值。
+如果指定类型，变量会为指定类型。如果没有指定类型，变量会使用分配的初始值类型。如果初始值为无类型常量，它会转换成初始值的默认类型。如果是一个无类型布尔值，那么变量的类型就是 `bool`。值 `nil` 不能给没有指定类型的变量赋值。
 
 ```go
 var d = math.Sin(0.5)  // d is float64
@@ -1211,17 +1236,17 @@ var t, ok = x.(T)      // t is T, ok is bool
 var n = nil            // illegal
 ```
 
-实现的限制：一个编译器发现一个变量声明后没有被使用将会报错。
+实现的限制：在函数体内声明的变量如果没有使用过编译器需要报错。
 
 #### 短变量声明
 
-一个短变量声明用以下的语法:
+短变量声明的语法:
 
 ```
 ShortVarDecl = IdentifierList ":=" ExpressionList .
 ```
 
-他和var语法的变量声明是一样的只不过不用指定类型。
+它比正常使用初始化表达式进行变量声明的方式要短，而且不指定类型：
 
 ```
 "var" IdentifierList = ExpressionList .
@@ -1231,32 +1256,31 @@ ShortVarDecl = IdentifierList ":=" ExpressionList .
 i, j := 0, 10
 f := func() int { return 7 }
 ch := make(chan int)
-r, w := os.Pipe(fd)  // os.Pipe() returns two values
-_, y, _ := coord(p)  // coord() returns three values; only interested in y coordinate
+r, w := os.Pipe(fd)  // os.Pipe() 返回两个值
+_, y, _ := coord(p)  // coord() 返回三个值，我们只关注 y
 ```
 
-和常规变量声明不同的是。一个短变量声明在同时声明多个变量的时候可以重复在同一个代码块中。这时我们并不是重新声明一个变量，而仅仅是改变他的值。
+和常规变量声明不同，即使之前在相同代码块中声明过的变量，也可以在短变量重新声明相同类型的变量，并且保证至少会有一个新的非空变量。总之，只应该在多变量短声明的时候重新声明变量，重新声明并不会使用新的变量，而是给变量分配新值。
 
 ```go
 field1, offset := nextField(str, 0)
-field2, offset := nextField(str, offset)  // redeclares offset
-a, a := 1, 2                              // illegal: double declaration of a or no new variable if a was declared elsewhere
+field2, offset := nextField(str, offset)  // 重新声明 offset
+a, a := 1, 2                              // 非法：声明了 a 两次并且没有新的变量
 ```
 
-短变量声明只能在函数体中使用，在一些上下文的中可以用来声明临时变量。
+短变量声明只能在函数中使用，例如在 `if`、`for`、`switch`语句的上下文中声明临时变量。
 
 #### 函数声明
 
-一个函数声明把一个标识符绑定给一个函数。
+函数声明为函数绑定标识符。
 
 ```
-FunctionDecl = "func" FunctionName ( Function | Signature ) .
+FunctionDecl = "func" FunctionName Signature [ FunctionBody ] .
 FunctionName = identifier .
-Function     = Signature FunctionBody .
 FunctionBody = Block .
 ```
 
- 如果函数指定了饭回参数。函数体的语句必须饭回相同类型的值。
+ 如果函数指定了返回参数。函数体的语句必须以终止语句结束。
 
  ```go
  func IndexRune(s string, r rune) int {
@@ -1265,27 +1289,38 @@ FunctionBody = Block .
 			return i
 		}
 	}
-	// invalid: missing return statement
+	// 无效：缺少 return 语句
 }
  ```
 
-一个函数声明可以没有函数体。这样一个声明为go提供一个外部实现。
+函数声明可以没有函数体。这样的声明提供一个函数声明，并由其他外部实现，例如汇编脚本。
+
+```go
+func min(x int, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func flushICache(begin, end uintptr)  // 由外部实现
+```
 
 
 #### 方法声明
 
-一个方法是一个函数的接收者，1个方法的声明绑定一个标识符作为方法的名称。并且将方法和接收者的类型联系起来。
+方法是一个带接收者的函数，方法声明为方法绑定标识符作为方法名并指定方法对应的接收者类型。
 
 ```
-MethodDecl = "func" Receiver MethodName ( Function | Signature ) .
+MethodDecl = "func" Receiver MethodName Signature [ FunctionBody ] .
 Receiver   = Parameters .
 ```
 
-接收者通过使用在方法前的一个额外的参数来指定。这个参数必须是一个非可变参数。他的类型必须是T或者T的指针。T被称作接收者的基础类型。他不能是一个指针或者接口，并且在同一个包中定义方法。我们可以认为方法和基础类型绑定了，并且方法名字可以通过T或*T选择器进行访问。
+接收者通过在方法增加一个额外的参数来指定。这个参数必须是一个非可变参数。它的类型必须是 T 或者 T 的指针（可能包含括号）。T 被称作接收者的基础类型；它不能是指针或接口类型，并且只能在同一个包中定义方法。声明后，我们认为方法绑定了基础类型，并且可以通过 T 或 *T 选择器访问方法名。
 
-一个非空的接受标识符必须在方法签名中是唯一的。如果接收者的值没有在该该函数体中被使用，那么该方法就不应该被定义。函数的参数和方法的参数也是一样。
+非空的接收者标识符在方法签名中必须是唯一的。如果接收者的值没有在该方法中使用，那么接收者标识符可以省略。函数和方法的参数也是一样。
 
-对于一个基础类型。非空的方法名子必须是唯一的。如果基础类型是一个结构体系那么非空的方法名必须是不能重复的。
+对于一个基础类型。绑定的非空的方法名必须是唯一的。如果基础类型是一个结构体，非空的方法名也不能与结构体字段重复。
 
 给定一个`Point`类型。声明：
 ```
@@ -1299,13 +1334,13 @@ func (p *Point) Scale(factor float64) {
 }
 ```
 
-为类型`*Point`绑定了2个方法`Length`和`Scale`。
-类型的方法是一个第一个参数是其接收者的函数，例如Scale函数
+为类型 `*Point `绑定了2个方法 `Length` 和 `Scale`。
+方法的类型就是以接收者作为第一个参数的函数类型，例如 `Scale` 方法：
 ```go
 func(p *Point, factor float64)
 ```
 
-但是这种方式声明的函数并不是方法。
+但是以这种方式声明的函数并不是方法。
 
 ## 表达式
 
