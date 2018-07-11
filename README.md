@@ -2858,6 +2858,36 @@ FallthroughStmt = "fallthrough" .
 
 #### Defer 语句
 
+`defer` 语句会在包裹函数返回后触发函数调用。这里的返回泛指函数因为 return 语句终止、到达函数末尾或者当前 goroutine 触发运行时恐慌。
+
+```
+DeferStmt = "defer" Expression .
+```
+
+表达式必须是函数或者方法调用；它不能使用括号括起来，调用内置函数会有一些限制。
+
+每次执行 defer 语句执行时都会计算函数的参数和值，但是并不会调用函数。相反，函数的调用是在包裹函数返回后进行，它们的执行顺序与声明顺序正好相反。如果 defer 对应的函数值为 nil，会在调用函数的时候导致运行时恐慌而不是声明 defer 语句的时候。
+
+例如：当 defer 函数为函数字面值且包裹函数具有命名结果值，此时，我们在defer 函数中可以访问和修改命名的结果值。defer 函数的所有返回值都会被忽略。
+
+```go
+lock(l)
+defer unlock(l)  // unlocking happens before surrounding function returns
+
+// prints 3 2 1 0 before surrounding function returns
+for i := 0; i <= 3; i++ {
+	defer fmt.Print(i)
+}
+
+// f returns 1
+func f() (result int) {
+	defer func() {
+		result++
+	}()
+	return 0
+}
+```
+
 #### 内置函数
 
 内置函数是预定义的。调用他们和其他函数一样只是他们接受一个类型而不是一个表达式。
