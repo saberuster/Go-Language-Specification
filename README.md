@@ -2660,15 +2660,109 @@ a[i] <<= 2
 i &^= 1<<n
 ```
 
-元祖分配
+元祖赋值语句会把运算返回的多个值分别分配给变量列表。它有两种格式，第一种：它是返回多值的表达式，例如函数调用、通道和 map 运算、类型断言。左侧运算元的数量必须等于返回值的数量。如果函数返回两个值：
+
+```go
+x, y = f()
+```
+
+它会将第一个返回值分配给 x ，把第二个返回值分配给 y。第二种格式中，左侧运算元的数量必须等于右侧运算元的数量。每个表达式都只能返回单一值，右侧第 n 个值会赋值给左侧第 n 个变量。
+
+```go
+one, two, three = '一', '二', '三'
+```
+
+空标识符可以在分配时忽略一个右面位置的表达式：
+
+```go
+_ = x       // evaluate x but ignore it
+x, _ = f()  // evaluate f() but ignore second result value
+```
+
+赋值分为两个阶段。首先会计算左侧运算元的索引表达式和指针的解引用工作并以一定顺序计算右侧表达式的值。
+
+然后依次对左侧运算元赋值。
+
+```go
+a, b = b, a  // exchange a and b
+
+x := []int{1, 2, 3}
+i := 0
+i, x[i] = 1, 2  // set i = 1, x[0] = 2
+
+i = 0
+x[i], i = 2, 1  // set x[0] = 2, i = 1
+
+x[0], x[0] = 1, 2  // set x[0] = 1, then x[0] = 2 (so x[0] == 2 at end)
+
+x[1], x[3] = 4, 5  // set x[1] = 4, then panic setting x[3] = 5.
+
+type Point struct { x, y int }
+var p *Point
+x[2], p.x = 6, 7  // set x[2] = 6, then panic setting p.x = 7
+
+i = 2
+x = []int{3, 5, 7}
+for i, x[i] = range x {  // set i, x[2] = 0, x[0]
+	break
+}
+// after this loop, i == 0 and x == []int{3, 5, 3}
+```
+
+在赋值语句中每个值都必须能分配给左侧指定类型的值。除了以下特例：
+
+1. 任何类型都能分配给空标识符。
+2. 如果把无类型常量分配给接口类型或者空标识符，它会转换成默认类型。
+3. 如果无类型的布尔值分配给了接口类型或者空标识符，它会先转换成 `bool` 类型。
 
 #### if 语句
 
+`if` 语句根据布尔值表达式的值来决定执行条件分支的代码。如果表达式为真，就执行 `if` 分支内的代码，否则执行 `else` 分支的代码。
+
+```
+IfStmt = "if" [ SimpleStmt ";" ] Expression Block [ "else" ( IfStmt | Block ) ] .
+```
+
+```go
+if x > max {
+	x = max
+}
+```
+
+表达式可能先于普通语句，它会在表达式求值之前发生。
+
+```go
+if x := f(); x < y {
+	return x
+} else if x > z {
+	return z
+} else {
+	return y
+}
+```
+
 #### switch 语句
+
+
 
 #### for 语句
 
 #### Go 语句
+
+`go` 语句会开始在相同地址空间中的单独 goroutine 中调用函数。
+
+```
+GoStmt = "go" Expression .
+```
+
+表达式必须是函数或者方法调用；它不能使用括号括起来，调用内置函数有表达式语句的限制。
+
+函数的值和参数会按顺序在调用的 goroutine 中求值。不像普通的函数调用，程序不会等待函数调用完成，而是直接开启一个新的 goroutine 执行函数。函数退出时，goroutine 也会退出。函数的任何返回值都会被丢弃。
+
+```go
+go Server()
+go func(ch chan<- bool) { for { sleep(10); ch <- true }} (c)
+```
 
 #### select 语句
 
@@ -2676,11 +2770,91 @@ i &^= 1<<n
 
 #### break 语句
 
+`break` 语句会在 `for`、`switch` 或 `select` 语句内部退出到相同函数的某个位置。
+
+```
+BreakStmt = "break" [ Label ] .
+```
+
+如果想指定标签，它必须出现在它所中止的 `for`、`switch` 或 `select` 语句旁。
+
+```go
+OuterLoop:
+	for i = 0; i < n; i++ {
+		for j = 0; j < m; j++ {
+			switch a[i][j] {
+			case nil:
+				state = Error
+				break OuterLoop
+			case item:
+				state = Found
+				break OuterLoop
+			}
+		}
+	}
+```
+
 #### continue 语句
+
+`continue` 语句会提前 `for` 语句的下一次迭代。`for` 语句必须和 `continue` 在相同函数中。
+
+```go
+RowLoop:
+	for y, row := range rows {
+		for x, data := range row {
+			if data == endOfRow {
+				continue RowLoop
+			}
+			row[x] = data + bias(x, y)
+		}
+	}
+
+```
 
 #### goto 语句
 
+`goto` 会将程序跳转到相同函数的指定标签处。
+
+```
+GotoStmt = "goto" Label .
+```
+
+```go
+goto Error
+```
+
+goto 语句不允许跳过作用域内程序变量的初始化工作。
+
+```go
+	goto L  // BAD
+	v := 3
+L:
+```
+
+上面的程序是错误的，因为它跳过了变量 v 的初始化过程。
+
+```go
+if n%2 == 1 {
+	goto L1
+}
+for n > 0 {
+	f()
+	n--
+L1:
+	f()
+	n--
+}
+```
+
+标签作用域外的 goto 语句不能跳转到标签处，所以上面的代码是错误的。
+
 #### Fallthrough 语句
+
+`fallthrough` 语句会跳转到 `switch` 语句中的下一个 case 分句中。它应该只在最后一个非空分句中使用。
+
+```
+FallthroughStmt = "fallthrough" .
+```
 
 #### Defer 语句
 
