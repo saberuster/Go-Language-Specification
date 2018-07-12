@@ -2747,6 +2747,105 @@ if x := f(); x < y {
 
 #### for 语句
 
+for 语句可以用来重复执行一段代码。它有三种格式：迭代器可以是单一条件、for 分句或者 range 语句。
+
+```
+ForStmt = "for" [ Condition | ForClause | RangeClause ] Block .
+Condition = Expression .
+```
+
+###### 单一条件的 for 语句
+
+这种情况下 for 会在条件为 true 时一直重复。条件会在每次迭代时都重新计算。如果没有指定条件，默认一直为 true。
+
+```go
+for a < b {
+	a *= 2
+}
+```
+
+###### 带分句的 for 语句
+
+带分句的 for 语句也是由条件控制，只是它有一个初始化和寄送的过程。例如赋值、递增或者递减语句。初始化语句可以是短变量声明，但是寄送语句不能。在初始化语句中声明的变量可以在迭代过程中使用。
+
+```
+ForClause = [ InitStmt ] ";" [ Condition ] ";" [ PostStmt ] .
+InitStmt = SimpleStmt .
+PostStmt = SimpleStmt .
+```
+
+```go
+for i := 0; i < 10; i++ {
+	f(i)
+}
+```
+
+如果初始化语句非空，它会在进入迭代前执行一次；post 语句在每次循环后都会执行一次。在只有条件的情况下可以省略分号。如果缺省条件语句，默认为 true。
+
+```
+for cond { S() }    is the same as    for ; cond ; { S() }
+for      { S() }    is the same as    for true     { S() }
+```
+
+###### 带 range 分句的 for 语句
+
+带 range 分句的 for 语句可以访问数组、切片、字符串、map 的所有元素，还可以从通道中接收值。迭代获得元素分配给了相应的迭代变量并执行代码块。
+
+```
+RangeClause = [ ExpressionList "=" | IdentifierList ":=" ] "range" Expression .
+```
+
+右侧的 range 分句表达式叫做 range 表达式，它可能是数组、数组的指针、切片、字符串、map 或通道接收者类型。在分配时，左侧运算元必须是可寻址的或者 map 的索引表达式；它们作为迭代变量。如果 range 表达式是一个通道类型，至少需要有一个变量，它也可以有两个变量。如果迭代变量是空标识符，就代表在分句中不存在该标识符。
+
+
+
+```
+Range expression                          1st value          2nd value
+
+array or slice  a  [n]E, *[n]E, or []E    index    i  int    a[i]       E
+string          s  string type            index    i  int    see below  rune
+map             m  map[K]V                key      k  K      m[k]       V
+channel         c  chan E, <-chan E       element  e  E
+```
+
+
+
+```go
+var testdata *struct {
+	a *[7]int
+}
+for i, _ := range testdata.a {
+	// testdata.a is never evaluated; len(testdata.a) is constant
+	// i ranges from 0 to 6
+	f(i)
+}
+
+var a [10]string
+for i, s := range a {
+	// type of i is int
+	// type of s is string
+	// s == a[i]
+	g(i, s)
+}
+
+var key string
+var val interface {}  // element type of m is assignable to val
+m := map[string]int{"mon":0, "tue":1, "wed":2, "thu":3, "fri":4, "sat":5, "sun":6}
+for key, val = range m {
+	h(key, val)
+}
+// key == last map key encountered in iteration
+// val == map[key]
+
+var ch chan Work = producer()
+for w := range ch {
+	doWork(w)
+}
+
+// empty a channel
+for range ch {}
+```
+
 #### Go 语句
 
 `go` 语句会开始在相同地址空间中的单独 goroutine 中调用函数。
@@ -2766,7 +2865,126 @@ go func(ch chan<- bool) { for { sleep(10); ch <- true }} (c)
 
 #### select 语句
 
+select 语句会在接收/发送操作集中选择一个执行。它看起来和 switch 很像，只不过是专门针对通信操作的。
+
+```
+SelectStmt = "select" "{" { CommClause } "}" .
+CommClause = CommCase ":" StatementList .
+CommCase   = "case" ( SendStmt | RecvStmt ) | "default" .
+RecvStmt   = [ ExpressionList "=" | IdentifierList ":=" ] RecvExpr .
+RecvExpr   = Expression .
+```
+
+接收表达式可以将接收表达式的值分配给一个或两个变量。接收表达式必须是一个接收运算元（可以使用括号括起来）。它最多允许有一个 default 语句。
+
+select 语句执行以下几个步骤：
+
+1. 对于 select 语句的所有分句，接收操作的通道运算元、通道、发送语句的右侧表达式都会执行一次操作。
+2. 如果一个或多个通信同时发生，它会通过一致性随机选择一个执行。如果没有 default 语句，select 语句会一直阻塞。
+3. 除了 default 分句，其他分句只有在开始进行通信的时候才会执行。
+4. 如果 select 分句是一个接收语句，它可以给变量分配值。
+5. 执行 select 分句内的内容。
+
+如果向 nil 通道发送信息在没有 default 分句的情况下会一直阻塞。
+
+```go
+var a []int
+var c, c1, c2, c3, c4 chan int
+var i1, i2 int
+select {
+case i1 = <-c1:
+	print("received ", i1, " from c1\n")
+case c2 <- i2:
+	print("sent ", i2, " to c2\n")
+case i3, ok := (<-c3):  // same as: i3, ok := <-c3
+	if ok {
+		print("received ", i3, " from c3\n")
+	} else {
+		print("c3 is closed\n")
+	}
+case a[f()] = <-c4:
+	// same as:
+	// case t := <-c4
+	//	a[f()] = t
+default:
+	print("no communication\n")
+}
+
+for {  // send random sequence of bits to c
+	select {
+	case c <- 0:  // note: no statement, no fallthrough, no folding of cases
+	case c <- 1:
+	}
+}
+
+select {}  // block forever
+```
+
 #### return 语句
+
+`return` 语句会终止函数 F 的执行并可选的返回一个或多个返回值。所有的滞后函数都会在 F 返回到它的调用者之前执行。
+
+```
+ReturnStmt = "return" [ ExpressionList ] .
+```
+
+如果函数没有返回值类型，return 不能返回任何值。
+
+```go
+func noResult() {
+	return
+}
+```
+
+有三种方式能够返回指定类型的值：
+
+1. 返回值可以直接在 return 语句中列出。每个表达式都必须返回一个值并且能够分配给相应的返回值类型。
+
+   ```go
+   func simpleF() int {
+   	return 2
+   }
+   
+   func complexF1() (re float64, im float64) {
+   	return -7.0, -4.0
+   }
+   ```
+
+2. return 语句的表达式列表可以是一个返回多值的函数调用。这时会使用临时变量来获取函数调用的返回值并直接将其作为 return 语句的表达式列表。
+
+   ```go
+   func complexF2() (re float64, im float64) {
+   	return complexF1()
+   }
+   ```
+
+3. 如果制定了返回值的标识符那么 return 的表达式列表可以为空。返回值参数会作为普通的本地变量按需分配。return 语句会直接返回它们。
+
+   ```go
+   func complexF3() (re float64, im float64) {
+   	re = 7.0
+   	im = 4.0
+   	return
+   }
+   
+   func (devnull) Write(p []byte) (n int, _ error) {
+   	n = len(p)
+   	return
+   }
+   ```
+
+不管如何声明，所有的返回值都会在进入函数前提前初始化成类型的零值。return 语句会在所有 defer 函数之前指定返回值。
+
+实现限制：编译器不允许在覆盖了命名返回值的作用域中直接返回。
+
+```go
+func f(n int) (res int, err error) {
+	if _, err := f(n-1); err != nil {
+		return  // invalid return statement: err is shadowed
+	}
+	return
+}
+```
 
 #### break 语句
 
